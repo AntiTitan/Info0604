@@ -145,9 +145,171 @@ WINDOW *creer_fenetre_outils() {
 
 void *routine_fourmi(void *arg) {
 	coord_t *coord = (coord_t *) arg;
-	
+	pthread_t* suppr;
+	int dir, x, y, change;
+
+	x = coord->x;
+	y = coord->y;
+	srand(time(NULL));
 	while (1) {		
 		/*Que feront les fourmis ?!?!?!*/
+		dir = (rand() % 4) ;
+		change = 0;
+		pthread_testcancel();
+		switch(dir) {
+			case 1:/*En haut*/
+				pthread_mutex_lock(&grille[y-1][x].mutex);
+				pthread_mutex_lock(&grille[y][x].mutex);
+				if (grille[y-1][x].element == VIDE) {
+					grille[y-1][x].element = FOURMI;
+					grille[y][x].element = VIDE;
+					grille[y-1][x].fourmi = grille[y][x].fourmi;
+					grille[y][x].fourmi = NULL;
+					mvwprintw(fen_sim, y, x, " ");
+					mvwprintw(fen_sim, y-1, x, "@");
+					y--;
+					change = 1;
+				}
+				else if (grille[y-1][x].element == OBSTACLE) {
+					grille[y-1][x].element = FOURMI;
+					grille[y][x].element = VIDE;
+					grille[y-1][x].fourmi = grille[y][x].fourmi;
+					grille[y][x].fourmi = NULL;
+					mvwprintw(fen_sim, y, x, " ");
+					mvwprintw(fen_sim, y-1, x, "@");
+					y--;
+					change = 1;
+				}
+				else if (grille[y-1][x].element == FOURMI) {
+					grille[y][x].element = VIDE;
+					suppr = grille[y-1][x].fourmi;
+					grille[y-1][x].fourmi = grille[y][x].fourmi;
+					grille[y][x].fourmi = NULL;
+					pthread_cancel(&suppr);
+					mvwprintw(fen_sim, y, x, " ");
+					mvwprintw(fen_sim, y-1, x, "@");
+					y--;
+					change = 1;
+				}
+				if (change) {
+					pthread_mutex_unlock(&grille[y][x].mutex);
+					pthread_mutex_unlock(&grille[y+1][x].mutex);
+				}
+				else {
+					pthread_mutex_unlock(&grille[y-1][x].mutex);
+					pthread_mutex_unlock(&grille[y][x].mutex);
+				}
+				break;
+			case 2:/*A droite*/
+				pthread_mutex_lock(&grille[y][x+1].mutex);
+				pthread_mutex_lock(&grille[y][x].mutex);
+				if (grille[y][x+1].element == VIDE) {
+					grille[y][x+1].element = FOURMI;
+					grille[y][x].element = VIDE;
+					grille[y][x+1].fourmi = grille[y][x].fourmi;
+					grille[y][x].fourmi = NULL;
+					mvwprintw(fen_sim, y, x, " ");
+					mvwprintw(fen_sim, y, x+1, "@");
+					x++;
+					change = 1;
+				}
+				else if (grille[y][x+1].element == OBSTACLE) {
+					grille[y][x+1].element = FOURMI;
+					grille[y][x].element = VIDE;
+					grille[y][x+1].fourmi = grille[y][x].fourmi;
+					grille[y][x].fourmi = NULL;
+					mvwprintw(fen_sim, y, x, " ");
+					mvwprintw(fen_sim, y, x+1, "@");
+					x++;
+					change = 1;
+				}
+				else if (grille[y][x+1].element == FOURMI) {
+					grille[y][x].element = VIDE;
+					suppr = grille[y][x+1].fourmi;
+					grille[y][x+1].fourmi = grille[y][x].fourmi;
+					grille[y][x].fourmi = NULL;
+					pthread_cancel(&suppr);
+					mvwprintw(fen_sim, y, x, " ");
+					mvwprintw(fen_sim, y, x+1, "@");
+					x++;
+					change = 1;
+				}
+				if (change) {
+					pthread_mutex_unlock(&grille[y][x].mutex);
+					pthread_mutex_unlock(&grille[y][x-1].mutex);
+				}
+				else {
+					pthread_mutex_unlock(&grille[y][x+1].mutex);
+					pthread_mutex_unlock(&grille[y][x].mutex);
+				}
+				break;
+			case 3:/*En bas*/
+				pthread_mutex_lock(&grille[y+1][x].mutex);
+				pthread_mutex_lock(&grille[y][x].mutex);
+				if (grille[y+1][x].element == VIDE) {
+					grille[y+1][x].element = FOURMI;
+					grille[y][x].element = VIDE;
+					grille[y+1][x].fourmi = grille[y][x].fourmi;
+					grille[y][x].fourmi = NULL;
+					mvwprintw(fen_sim, y, x, " ");
+					mvwprintw(fen_sim, y+1, x, "@");
+					y++;
+					change = 1;
+				}
+				else if (grille[y+1][x].element == OBSTACLE) {
+					grille[y+1][x].element = FOURMI;
+					grille[y][x].element = VIDE;
+					grille[y+1][x].fourmi = grille[y][x].fourmi;
+					grille[y][x].fourmi = NULL;
+					mvwprintw(fen_sim, y, x, " ");
+					mvwprintw(fen_sim, y+1, x, "@");
+					y++;
+					change = 1;
+				}
+				if (change) {
+					pthread_mutex_unlock(&grille[y][x].mutex);
+					pthread_mutex_unlock(&grille[y-1][x].mutex);
+				}
+				else {
+					pthread_mutex_unlock(&grille[y+1][x].mutex);
+					pthread_mutex_unlock(&grille[y][x].mutex);
+				}
+				break;
+			case 4:/*A gauche*/
+				pthread_mutex_lock(&grille[y][x-1].mutex);
+				pthread_mutex_lock(&grille[y][x].mutex);
+				if (grille[y][x-1].element == VIDE) {
+					grille[y][x-1].element = FOURMI;
+					grille[y][x].element = VIDE;
+					grille[y][x-1].fourmi = grille[y][x].fourmi;
+					grille[y][x].fourmi = NULL;
+					mvwprintw(fen_sim, y, x, " ");
+					mvwprintw(fen_sim, y, x-1, "@");
+					x--;
+					change = 1;
+				}
+				else if (grille[y][x-1].element == OBSTACLE) {
+					grille[y][x-1].element = FOURMI;
+					grille[y][x].element = VIDE;
+					grille[y][x-1].fourmi = grille[y][x].fourmi;
+					grille[y][x].fourmi = NULL;
+					mvwprintw(fen_sim, y, x, " ");
+					mvwprintw(fen_sim, y, x-1, "@");
+					x--;
+					change = 1;
+				}
+				if (change) {
+					pthread_mutex_unlock(&grille[y][x].mutex);
+					pthread_mutex_unlock(&grille[y][x+1].mutex);
+				}
+				else {
+					pthread_mutex_unlock(&grille[y][x-1].mutex);
+					pthread_mutex_unlock(&grille[y][x].mutex);
+				}
+				break;
+		}
+		wrefresh(fen_sim);
+		wrefresh(fen_msg);
 		sleep(1);
 	}
 	
@@ -179,8 +341,8 @@ int main(int argc, char *argv[]) {
 		switch(ch) {
 			case KEY_MOUSE :
 				if (getmouse(&event) == OK) {
-					wprintw(fen_msg, "Clic a la position %d %d de l'ecran\n", event.y, event.x);
-					wrefresh(fen_msg);
+					/*wprintw(fen_msg, "Clic a la position %d %d de l'ecran\n", event.y, event.x);
+					wrefresh(fen_msg);*/
 					if (event.y == 32 && event.x >= 82 && event.x <= 98) {
 						item_actif = OBSTACLE;
 						mvwprintw(fen_outils, 0, 1, "X");
@@ -205,6 +367,11 @@ int main(int argc, char *argv[]) {
 									grille[event.y - 1][event.x - 1].element = OBSTACLE;
 									mvwprintw(fen_sim, event.y - 1, event.x - 1, "#");
 									wprintw(fen_msg, "Ajout d'un obstacle a la position %d %d\n", event.y - 1, event.x - 1);
+								}
+								else if (grille[event.y - 1][event.x - 1].element == OBSTACLE) {
+									grille[event.y - 1][event.x - 1].element = VIDE;
+									mvwprintw(fen_sim, event.y - 1, event.x - 1, " ");
+									wprintw(fen_msg, "Suppression d'un obstacle a la position %d %d\n", event.y - 1, event.x - 1);
 								}
 								wrefresh(fen_sim);
 								wrefresh(fen_msg);
